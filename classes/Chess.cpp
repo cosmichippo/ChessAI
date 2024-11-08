@@ -53,26 +53,18 @@ void Chess::setUpBoard()
     setNumberOfPlayers(2);
     for (int i = 0; i < BOARDDIM; i++){
         for (int j = 0; j < BOARDDIM; j++){
-            x = 64 * j; y = 64 * i;
-            ChessSquare mySquare = ChessSquare();
+            x = 64 * j + 100; y = 64 * i + 100;
             const ImVec2 loc = ImVec2(x, y);
-            mySquare.initHolder(loc, "square.png", i, j);
-            
-
-            if (i < 2){
-                Bit* myBit = PieceForPlayer(1, initGrid[i][j]);
-                if (mySquare.canDropBitAtPoint(myBit, loc)){
-                    mySquare.dropBitAtPoint(myBit, ImVec2(x,y));
-                }
-            }
-            if (i > 5){
-                Bit* myBit = PieceForPlayer(0, initGrid[i][j]);
-                if (mySquare.canDropBitAtPoint(myBit, loc)){
-                    mySquare.dropBitAtPoint(myBit, ImVec2(x, y));
-                }
+            _grid[i][j].initHolder(loc, "boardsquare.png", i, j); 
+            ChessPiece initp = initGrid[i][j];
+            _grid[i][j].setGameTag((i < 4) ? initp + 128 : initp); // need to add 128 if in black pieces
+            if (initp != NoPiece){
+                Bit* myBit = PieceForPlayer((i < 4) ? 1 : 0, initp);  // need to check for if black or not
+                myBit->setParent(&_grid[i][j]);
+                myBit->setPosition(loc);
+                _grid[i][j].setBit(myBit);
             }
 
-            _grid[i][j] = mySquare;
         }
     }
    
@@ -84,22 +76,32 @@ void Chess::setUpBoard()
 //
 bool Chess::actionForEmptyHolder(BitHolder &holder)
 {
-    return false;
+    if (holder.bit()) {
+        return false;
+    }
+    return true;
 }
 
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
+    if (src.bit() == &bit){
+        return true;
+    }
     // needs to be set
     return false;
 }
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 {
+    if (dst.canDropBitAtPoint(&bit, dst.getPosition())){
+        return true;
+    }
     return false;
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
-    
+    dst.dropBitAtPoint(&bit, dst.getPosition());
+    src.setBit(nullptr); 
 }
 
 //
