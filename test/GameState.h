@@ -1,3 +1,5 @@
+// base code written by https://github.com/zaphodgjd
+
 #pragma once
 
 #include <assert.h>
