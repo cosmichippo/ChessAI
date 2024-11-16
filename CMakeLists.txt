@@ -49,6 +49,8 @@ add_executable(tictactoe Application.cpp
                           imgui/imgui_widgets.cpp
                           imgui/imgui.cpp
                           imgui/imgui_impl_opengl3.cpp
+                          classes/BitBoard.h
+                          classes/BitBoardManager.cpp
                           classes/Bit.cpp
                           classes/BitHolder.cpp
                           classes/Game.cpp
@@ -56,6 +58,7 @@ add_executable(tictactoe Application.cpp
                           classes/Square.cpp
                           classes/ChessSquare.cpp
                           classes/Chess.cpp
+                          
                           ${MAIN_FILE}
                           ${IMPL_FILE}
                 )

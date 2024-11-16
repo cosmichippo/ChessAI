@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-
+// #include "GameState.h"
 class Game;
 class Player;
 
@@ -19,11 +19,13 @@ public:
 
 	static	Turn *initStartOfGame(Game *game) { Turn *turn = new Turn(); turn->_game = game; turn->_status = kTurnFinished; return turn; };
 	void	setStateString(std::string board) { _boardState = board; };
+	// void	setStateString(GameState board) { _gameState = board; };
 	Game		*_game;
 	Player		*_player;
 	TurnStatus	_status;
 	std::string	_move;
 	std::string	_boardState;
+	// GameState _gameState;
 	int			_date;
 	std::string	_comment;
 	int			_score;

@@ -1,5 +1,5 @@
 #include "Chess.h"
-
+#include "BitBoardManager.h"
 const int AI_PLAYER = 1;
 const int HUMAN_PLAYER = -1;
 
@@ -28,7 +28,6 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
     bit->LoadTextureFromFile(spritePath.c_str());
     bit->setOwner(getPlayerAt(playerNumber));
     bit->setSize(pieceSize, pieceSize);
-
     return bit;
 }
 
@@ -57,12 +56,17 @@ void Chess::setUpBoard()
             const ImVec2 loc = ImVec2(x, y);
             _grid[i][j].initHolder(loc, "boardsquare.png", i, j); 
             ChessPiece initp = initGrid[i][j];
-            _grid[i][j].setGameTag((i < 4) ? initp + 128 : initp); // need to add 128 if in black pieces
+            
             if (initp != NoPiece){
                 Bit* myBit = PieceForPlayer((i < 4) ? 1 : 0, initp);  // need to check for if black or not
                 myBit->setParent(&_grid[i][j]);
                 myBit->setPosition(loc);
                 _grid[i][j].setBit(myBit);
+                if (i < 4) {
+                    _grid[i][j].bit()->setGameTag( initp + 128);
+                } else {
+                    _grid[i][j].bit()->setGameTag( initp);
+                }
             }
 
         }
@@ -87,18 +91,55 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
     if (src.bit() == &bit){
         return true;
     }
-    // needs to be set
     return false;
+    // if bitboards.generateAttackBitBoard(bit.type, bit.bitboard) > 0:
+        //return true
+    // needs to be set
 }
+
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
-{
-    if (dst.canDropBitAtPoint(&bit, dst.getPosition())){
-        return true;
+{ 
+    // if bit can't go there in the first place, return false
+    if (!dst.canDropBitAtPoint(&bit, dst.getPosition())){
+        return false;
     }
-    return false;
-}
+    // if the bit's corresponding position & the bit's moveset is in the thingy, then 
+    // bit-> generateMovesBitboard ^ positionToBitboard > 0 ~~> then you can move there;
+    // if bit in bitholder, get bit's associated location in the board. how can you store that though? 
+    int srcCol = -1; int srcRow = -1;
+    int dstCol = -1; int dstRow = -1;
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++) {
+            if (&_grid[i][j] == &dst) { 
+                dstCol = 7 - _grid[i][j].getColumn();
+                dstRow = 7 - _grid[i][j].getRow();
+            }
+            if (&_grid[i][j] == &src) {
+                srcCol = 7 - _grid[i][j].getColumn();
+                srcRow = 7 - _grid[i][j].getRow();
+            }
+        }
+    }
+    if (srcCol == -1 ||  dstCol == -1){
+        return false; 
+        // else. we have the coordinates for this thing. i hate the way i'm doing this but it's 12pm and i need results :(
+    }
+    BitBoardManager myManager = BitBoardManager();
+    std::string state = stateString();
 
+    if (bit.gameTag() == Pawn) {
+        // then i am a white peice
+        bitboard opponent = myManager.generateBlackBitboard(state);
+        bitboard myBit = myManager.bitboardFromPosition(srcCol, srcRow);
+        std::cout << myBit << "myBit" <<std::endl;
+        bitboard destBit = myManager.bitboardFromPosition(dstCol, dstRow);
+        bitboard myAttack = myManager.pawnAttackBitBoard(myBit, opponent, 0);
+        return (myAttack & destBit);
+
+    }
+    return true;
+}
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
     dst.dropBitAtPoint(&bit, dst.getPosition());
     src.setBit(nullptr); 
@@ -114,6 +155,8 @@ void Chess::stopGame()
 Player* Chess::checkForWinner()
 {
     // check to see if either player has won
+    /*
+    */
     return nullptr;
 }
 
@@ -137,7 +180,7 @@ const char Chess::bitToPieceNotation(int row, int column) const {
     unsigned char notation = '0';
     Bit* bit = _grid[row][column].bit();
     if (bit) {
-        notation = bit->gameTag() < 128 ? wpieces[bit->gameTag()] : bpieces[bit->gameTag() & 127];
+        notation = (bit->gameTag() < 128) ? wpieces[bit->gameTag()] : bpieces[bit->gameTag() & 127];
     } else {
         notation = '0';
     }
@@ -185,7 +228,6 @@ void Chess::setStateString(const std::string &s)
         }
     }
 }
-
 
 //
 // this is the function that will be called by the AI
