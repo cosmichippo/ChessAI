@@ -130,19 +130,19 @@ bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 
     if (bit.gameTag() == Pawn) {
         // then i am a white peice
-        bitboard opponent = myManager.generateBlackBitboard(state);
-        bitboard myBit = myManager.bitboardFromPosition(srcCol, srcRow);
-        std::cout << myBit << "myBit" <<std::endl;
-        bitboard destBit = myManager.bitboardFromPosition(dstCol, dstRow);
-        bitboard myAttack = myManager.pawnAttackBitBoard(myBit, opponent, 0);
-        return (myAttack & destBit);
-
+        return myManager.generatePawnAttackPos(state, srcCol, srcRow, dstCol, dstRow, 0);
+    }
+    if (bit.gameTag() > 100 && bit.gameTag() - 128 == Pawn){
+        return myManager.generatePawnAttackPos(state, srcCol, srcRow, dstCol, dstRow, 1);
+    }
+    if (bit.gameTag() == Knight || (bit.gameTag() > 100 && bit.gameTag() - 128 == Knight)){
+        return myManager.generateKnightAttackPos(state, srcCol, srcRow, dstCol, dstRow);
     }
     return true;
 }
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
     dst.dropBitAtPoint(&bit, dst.getPosition());
-    src.setBit(nullptr); 
+    src.setBit(nullptr);
 }
 
 //

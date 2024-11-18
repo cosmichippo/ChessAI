@@ -49,15 +49,61 @@ bitboard BitBoardManager::generateWhiteBitboard(std::string stateString) {
 }
 
 bitboard BitBoardManager::pawnAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color) {
-    const bitboard leftOff = 0x7F7F7F7F7F7F7F7F; // 01111111
+    const bitboard leftOff = 0x7F7F7F7F7F7F7F7F;  // 01111111
     const bitboard rightOff = 0xFEFEFEFEFEFEFEFE; // 11111110
-    bitboard pawnAttackEast = pawnBitboard << 9 & leftOff; 
-    bitboard pawnAttackWest = pawnBitboard << 7 & rightOff;
+    bitboard pawnAttackEast = (!color) ? (pawnBitboard << 9 & rightOff) : (pawnBitboard >> 7 & rightOff);
+    bitboard pawnAttackWest = (!color) ? (pawnBitboard << 7 & leftOff) : (pawnBitboard >> 9 & leftOff);
     bitboard attacks = (pawnAttackWest | pawnAttackEast) & opponent; // you can move to the side if there is a thingy there;
-    bitboard moveUp = (pawnBitboard << 8) ^ opponent; // if pawn moves up and there is not an opponent there
+    bitboard moveUp;
+    if(color){
+        moveUp = ((pawnBitboard >> 8) & ~opponent);
+    } else {
+        moveUp = (pawnBitboard << 8) & ~opponent;
+    }
     return attacks | moveUp;
 }
+bitboard BitBoardManager::knightAttackBitBoard(bitboard knightBitboard, bitboard opponent, bool color){
+    const bitboard leftOff =  0x7F7F7F7F7F7F7F7F; // 01111111
+    const bitboard rightOff = 0xFEFEFEFEFEFEFEFE; // 11111110
+    const bitboard ABoff =    0x3F3F3F3F3F3F3F3F; // 00111111
+    const bitboard GHoff =    0xFCFCFCFCFCFCFCFC; // 11111100
+    // vals to left -> 17, 10
+    bitboard leftOne = knightBitboard << 17;
+    leftOne = leftOne | (knightBitboard >> 15);
+    leftOne = leftOne & rightOff;
+    
+    bitboard leftTwo = knightBitboard << 10;
+    leftTwo = leftTwo | (knightBitboard >> 6);
+    leftTwo = leftTwo & GHoff;
+    
+    bitboard rightOne = knightBitboard << 15; 
+    rightOne = rightOne | (knightBitboard >> 17);
+    rightOne = rightOne & leftOff;
 
+    bitboard rightTwo = knightBitboard << 6; 
+    rightTwo = rightTwo | (knightBitboard >> 10);
+    rightTwo = rightTwo & ABoff;
+
+    return (rightOne | rightTwo) | (leftOne | leftTwo);
+    }
+bitboard BitBoardManager::generatePawnAttackPos(std::string state, int srcCol, int srcRow, int dstCol, int dstRow, bool color){
+        bitboard opponent = (color) ? generateWhiteBitboard(state) : generateBlackBitboard(state);
+        bitboard myBit = bitboardFromPosition(srcCol, srcRow);
+        bitboard destBit = bitboardFromPosition(dstCol, dstRow);
+        bitboard myAttack = pawnAttackBitBoard(myBit, opponent, color);
+        return (myAttack & destBit);
+
+}
+
+bitboard BitBoardManager::generateKnightAttackPos(std::string state, int srcCol, int srcRow, int dstCol, int dstRow){
+        bitboard opponent = generateBlackBitboard(state);
+        bitboard myBit = bitboardFromPosition(srcCol, srcRow);
+        std::cout << myBit << "myBit" <<std::endl;
+        bitboard destBit = bitboardFromPosition(dstCol, dstRow);
+        bitboard myAttack = knightAttackBitBoard(myBit, opponent, 0);
+        return (myAttack & destBit);
+
+}
 /*
 int main(int argc, char* argv[]){
     std::string startState = 
