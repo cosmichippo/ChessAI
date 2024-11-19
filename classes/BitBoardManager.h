@@ -18,11 +18,10 @@ public:
     bitboard pawnAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color);
     bitboard generatePawnAttackPos(std::string state, int srcCol, int srcRow, int dstCol, int dstRow, bool color);
     bitboard generateKnightAttackPos(std::string state, int srcCol, int srcRow, int dstCol, int dstRow);
-    bitboard rookAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color);
+    bitboard rookAttackBitBoard(int rowIndex, int colIndex, bitboard opponent);
     bitboard knightAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color);
-    bitboard bishopAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color);
-    bitboard kingAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color);
-    bitboard queenAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color);
+    bitboard bishopAttackBitBoard(int rowIndex, int colIndex, bitboard opponent);
+    bitboard kingAttackBitBoard(bitboard kingBitboard);
+    bitboard queenAttackBitBoard(int rowIndex, int colIndex, bitboard opponent);
     bitboard bitboardFromPosition(const int column, const int row);
-
 };

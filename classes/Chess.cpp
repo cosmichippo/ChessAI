@@ -138,6 +138,31 @@ bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
     if (bit.gameTag() == Knight || (bit.gameTag() > 100 && bit.gameTag() - 128 == Knight)){
         return myManager.generateKnightAttackPos(state, srcCol, srcRow, dstCol, dstRow);
     }
+    if (bit.gameTag() == Rook || (bit.gameTag() > 100 && bit.gameTag() - 128 == Rook)){
+        bitboard positions = myManager.rookAttackBitBoard(srcCol, srcRow, myManager.generateBlackBitboard(state) | myManager.generateWhiteBitboard(state));
+        bitboard destBit = myManager.bitboardFromPosition(dstCol, dstRow) ; // remember that this is returning a number that encodes position, just so happens that if not zero, evaluated as true
+        bitboard returnable = positions & destBit;
+        return returnable;
+    }
+    if (bit.gameTag() == Bishop || (bit.gameTag() > 100 && bit.gameTag() - 128 == Bishop)) {
+        bitboard positions = myManager.bishopAttackBitBoard(srcCol, srcRow, myManager.generateBlackBitboard(state) | myManager.generateWhiteBitboard(state));
+        bitboard destBit = myManager.bitboardFromPosition(dstCol, dstRow) ; // remember that this is returning a number that encodes position, just so happens that if not zero, evaluated as true
+        bitboard returnable = positions & destBit;
+        return returnable;       
+    }
+    if (bit.gameTag() == Queen || (bit.gameTag() > 100 && bit.gameTag() - 128 == Queen)){
+        bitboard rPos = myManager.rookAttackBitBoard(srcCol, srcRow, myManager.generateBlackBitboard(state) | myManager.generateWhiteBitboard(state));
+        bitboard bPos = myManager.bishopAttackBitBoard(srcCol, srcRow, myManager.generateBlackBitboard(state) | myManager.generateWhiteBitboard(state));
+        bitboard destBit = myManager.bitboardFromPosition(dstCol, dstRow) ; // remember that this is returning a number that encodes position, just so happens that if not zero, evaluated as true
+        bitboard returnable = (rPos | bPos) & destBit;
+        return returnable;
+    } 
+    if (bit.gameTag() == King || (bit.gameTag() > 100 && bit.gameTag() - 128 == King)){
+        bitboard srcBit = myManager.bitboardFromPosition(srcCol, srcRow);
+        bitboard dstBit = myManager.bitboardFromPosition(dstCol, dstRow) ; // remember that this is returning a number that encodes position, just so happens that if not zero, evaluated as true
+        bitboard positions =  myManager.kingAttackBitBoard(srcBit);
+        return dstBit & positions;
+    }
     return true;
 }
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {

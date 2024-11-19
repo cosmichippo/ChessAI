@@ -47,7 +47,15 @@ bitboard BitBoardManager::generateWhiteBitboard(std::string stateString) {
 
     return initialState; 
 }
+bitboard BitBoardManager::kingAttackBitBoard(bitboard kingBitboard){
+    const bitboard leftOff = 0x7F7F7F7F7F7F7F7F;  // 01111111
+    const bitboard rightOff = 0xFEFEFEFEFEFEFEFE; // 11111110
 
+    bitboard pawnAttackEast = ((kingBitboard << 9) | (kingBitboard >> 7) | (kingBitboard << 1)) & rightOff;
+    bitboard pawnAttackWest = ((kingBitboard  << 7) | (kingBitboard>> 9) | (kingBitboard >> 1))& leftOff;
+    bitboard upDown = (kingBitboard << 8) | (kingBitboard >> 8) | kingBitboard; 
+    return  pawnAttackEast | pawnAttackWest | upDown;
+}
 bitboard BitBoardManager::pawnAttackBitBoard(bitboard pawnBitboard, bitboard opponent, bool color) {
     const bitboard leftOff = 0x7F7F7F7F7F7F7F7F;  // 01111111
     const bitboard rightOff = 0xFEFEFEFEFEFEFEFE; // 11111110
@@ -60,7 +68,15 @@ bitboard BitBoardManager::pawnAttackBitBoard(bitboard pawnBitboard, bitboard opp
     } else {
         moveUp = (pawnBitboard << 8) & ~opponent;
     }
-    return attacks | moveUp;
+    if((pawnBitboard & 0x000000000000FF00) && !color && moveUp){
+        moveUp = moveUp | (pawnBitboard << 16) & ~opponent;
+        // if pawn is white, and pawn at start pos
+    }
+    else if((pawnBitboard & 0x00FF000000000000) && color && moveUp){
+        moveUp = moveUp | (pawnBitboard >> 16) & ~opponent;
+        // if pawn is white, and pawn at start pos
+    }
+    return attacks | moveUp | pawnBitboard;
 }
 bitboard BitBoardManager::knightAttackBitBoard(bitboard knightBitboard, bitboard opponent, bool color){
     const bitboard leftOff =  0x7F7F7F7F7F7F7F7F; // 01111111
@@ -104,6 +120,65 @@ bitboard BitBoardManager::generateKnightAttackPos(std::string state, int srcCol,
         return (myAttack & destBit);
 
 }
+
+bitboard BitBoardManager::rookAttackBitBoard(int rowIndex, int colIndex, bitboard opponent){
+    bitboard block = opponent;
+    int rk = rowIndex;
+    int fl = colIndex;
+    bitboard result = 0ULL;
+    int r, f;
+
+    // reformat to include like rowindex, colindex of source, and like shoot off from there
+    for (r = rk + 1; r <= 7; r++) {
+        result |= (1ULL << (fl + r * 8));
+        if (block & (1ULL << (fl + r * 8))) break;
+    }
+    // South
+    for (r = rk - 1; r >= 0; r--) {
+        result |= (1ULL << (fl + r * 8));
+        if (block & (1ULL << (fl + r * 8))) break;
+    }
+    // East
+    for (f = fl + 1; f <= 7; f++) {
+        result |= (1ULL << (f + rk * 8));
+        if (block & (1ULL << (f + rk * 8))) break;
+    }
+    // West
+    for (f = fl - 1; f >= 0; f--) {
+        result |= (1ULL << (f + rk * 8));
+        if (block & (1ULL << (f + rk * 8))) break;
+    }
+    return result;
+}
+bitboard BitBoardManager::bishopAttackBitBoard(int rowIndex, int colIndex, bitboard opponent){
+    bitboard block = opponent;
+    int rk = rowIndex;
+    int fl = colIndex;
+    bitboard result = 0ULL;
+    int r, f;
+    // Northeast
+    for (r = rk + 1, f = fl + 1; r <= 7 && f <= 7; r++, f++) {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8))) break;
+    }
+    // Southeast
+    for (r = rk - 1, f = fl + 1; r >= 0 && f <= 7; r--, f++) {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8))) break;
+    }
+    // Southwest
+    for (r = rk - 1, f = fl - 1; r >= 0 && f >= 0; r--, f--) {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8))) break;
+    }
+    // Northwest
+    for (r = rk + 1, f = fl - 1; r <= 7 && f >= 0; r++, f--) {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8))) break;
+    }
+    return result;
+}
+
 /*
 int main(int argc, char* argv[]){
     std::string startState = 
